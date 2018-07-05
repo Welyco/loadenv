@@ -11,13 +11,14 @@ import (
 	"github.com/envkey/envkey-fetch/fetch"
 	flags "github.com/jessevdk/go-flags"
 	"github.com/joho/godotenv"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type options struct {
 	Envkey     string `short:"e" long:"envkey" description:"ENVKEY variable"`
 	SourcePath string `short:"s" long:"source" description:"Source dotenv file path"`
 	OutputPath string `short:"o" long:"output" description:"Output file path"`
-	Format     string `short:"f" long:"format" description:"Output format. options: [dotenv, json, export]" default:"dotenv"`
+	Format     string `short:"f" long:"format" description:"Output format. options: [dotenv, json, gaeyaml, export]" default:"dotenv"`
 }
 
 func main() {
@@ -68,6 +69,8 @@ func writeOutputFile(opts options, resMap map[string]string) {
 		writeJSON(opts.OutputPath, resMap)
 	case "export":
 		writeExport(opts.OutputPath, resMap)
+	case "gaeyaml":
+		writeGoogleAppEngineYAML(opts.OutputPath, resMap)
 	default:
 		fmt.Println("Invalid format :", opts.Format)
 	}
@@ -139,6 +142,23 @@ func writeJSON(filePath string, resMap map[string]string) {
 
 	jsonBytes, _ := json.Marshal(resMap)
 	f.Write(jsonBytes)
+
+	f.Sync()
+}
+
+func writeGoogleAppEngineYAML(filePath string, resMap map[string]string) {
+	f, err := createFileWithPath(filePath)
+	if err != nil {
+		panic(err)
+	}
+
+	defer f.Close()
+
+	gaeYamlData := map[string]map[string]string{}
+	gaeYamlData["env_variables"] = resMap
+
+	yamlBytes, _ := yaml.Marshal(gaeYamlData)
+	f.Write(yamlBytes)
 
 	f.Sync()
 }
