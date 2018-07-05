@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/envkey/envkey-fetch/fetch"
@@ -14,18 +15,34 @@ import (
 
 type options struct {
 	Envkey     string `short:"e" long:"envkey" description:"ENVKEY variable"`
-	SourcePath string `short:"s" long:"source" description:"Source dotenv file path" default:".env"`
-	OutputPath string `short:"o" long:"output" description:"Output file path" default:"output.env"`
-	Format     string `short:"f" long:"format" description:"Output format dotenv, json, export" default:"dotenv"`
+	SourcePath string `short:"s" long:"source" description:"Source dotenv file path"`
+	OutputPath string `short:"o" long:"output" description:"Output file path"`
+	Format     string `short:"f" long:"format" description:"Output format. options: [dotenv, json, export]" default:"dotenv"`
 }
 
 func main() {
 	var opts options
-	flags.Parse(&opts)
+	parser := flags.NewParser(&opts, flags.Default)
+	parser.Parse()
+
+	if len(os.Args) == 1 {
+		parser.WriteHelp(os.Stdout)
+		os.Exit(1)
+	}
+
+	if len(opts.OutputPath) == 0 {
+		fmt.Println(`Output file path is not set. Please specify Output path by --output`)
+		fmt.Println(``)
+		parser.WriteHelp(os.Stdout)
+		os.Exit(1)
+	}
 
 	envkey, err := loadEnvkey(opts)
 	if err != nil {
-		panic(err)
+		fmt.Println(`Couldn't load ENVKEY variables. Please specify ENVKEY by --envkey, or --source option`)
+		fmt.Println(``)
+		parser.WriteHelp(os.Stdout)
+		os.Exit(1)
 	}
 
 	res := fetch.Fetch(envkey, fetch.FetchOptions{false, "", "envkeygo", "", false, 2.0})
@@ -40,6 +57,10 @@ func main() {
 		panic(errors.New("problem parsing EnvKey's response"))
 	}
 
+	writeOutputFile(opts, resMap)
+}
+
+func writeOutputFile(opts options, resMap map[string]string) {
 	switch opts.Format {
 	case "dotenv":
 		writeDotenv(opts.OutputPath, resMap)
@@ -66,8 +87,20 @@ func loadEnvkey(opts options) (string, error) {
 	return envkey, nil
 }
 
-func writeDotenv(fileName string, resMap map[string]string) {
-	f, err := os.Create(fileName)
+func createFileWithPath(filePath string) (*os.File, error) {
+	dir := filepath.Dir(filePath)
+
+	if dir != "" {
+		os.MkdirAll(dir, os.ModePerm)
+	}
+
+	f, err := os.Create(filePath)
+	return f, err
+}
+
+func writeDotenv(filePath string, resMap map[string]string) {
+	f, err := createFileWithPath(filePath)
+
 	if err != nil {
 		panic(err)
 	}
@@ -81,8 +114,8 @@ func writeDotenv(fileName string, resMap map[string]string) {
 	f.Sync()
 }
 
-func writeExport(fileName string, resMap map[string]string) {
-	f, err := os.Create(fileName)
+func writeExport(filePath string, resMap map[string]string) {
+	f, err := createFileWithPath(filePath)
 	if err != nil {
 		panic(err)
 	}
@@ -96,8 +129,8 @@ func writeExport(fileName string, resMap map[string]string) {
 	f.Sync()
 }
 
-func writeJSON(fileName string, resMap map[string]string) {
-	f, err := os.Create(fileName)
+func writeJSON(filePath string, resMap map[string]string) {
+	f, err := createFileWithPath(filePath)
 	if err != nil {
 		panic(err)
 	}
