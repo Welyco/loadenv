@@ -5,6 +5,7 @@ CLI tool to load environment variables from ENVKEY and export them in portable f
 # Install
 
 ```
+go get github.com/Welyco/loadenv
 go install github.com/Welyco/loadenv
 ```
 
