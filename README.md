@@ -20,7 +20,7 @@ Application Options:
   -e, --envkey= ENVKEY variable
   -s, --source= Source dotenv file path
   -o, --output= Output file path
-  -f, --format= Output format. options: [dotenv, json, gaeyaml, export] (default: dotenv)
+  -f, --format= Output format. options: [dotenv, json, gaeyaml, export, commonjs] (default: dotenv)
 
 Help Options:
   -h, --help    Show this help message
@@ -44,7 +44,21 @@ ENV2=bar
 ```
 # loadenv -s .env -o credentials/json -f json
 # cat credentials/json
-{"ENV1":"foo","ENV2":"bar"}
+{
+  "ENV1":"foo",
+  "ENV2":"bar"
+}
+```
+
+### commonjs
+
+```
+# loadenv -s .env -o credentials/js -f commonjs
+# cat credentials/js
+module.exports = {
+  "ENV1":"foo",
+  "ENV2":"bar"
+}
 ```
 
 ## Advanced Format

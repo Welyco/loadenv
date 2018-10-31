@@ -18,7 +18,7 @@ type options struct {
 	Envkey     string `short:"e" long:"envkey" description:"ENVKEY variable"`
 	SourcePath string `short:"s" long:"source" description:"Source dotenv file path"`
 	OutputPath string `short:"o" long:"output" description:"Output file path"`
-	Format     string `short:"f" long:"format" description:"Output format. options: [dotenv, json, gaeyaml, export]" default:"dotenv"`
+	Format     string `short:"f" long:"format" description:"Output format. options: [dotenv, json, gaeyaml, export, commonjs]" default:"dotenv"`
 }
 
 func main() {
@@ -71,6 +71,8 @@ func writeOutputFile(opts options, resMap map[string]string) {
 		writeExport(opts.OutputPath, resMap)
 	case "gaeyaml":
 		writeGoogleAppEngineYAML(opts.OutputPath, resMap)
+	case "commonjs":
+		writeJavaScriptCommonModule(opts.OutputPath, resMap)
 	default:
 		fmt.Println("Invalid format :", opts.Format)
 	}
@@ -140,8 +142,24 @@ func writeJSON(filePath string, resMap map[string]string) {
 
 	defer f.Close()
 
-	jsonBytes, _ := json.Marshal(resMap)
+	jsonBytes, _ := json.MarshalIndent(resMap, "", "  ")
 	f.Write(jsonBytes)
+
+	f.Sync()
+}
+
+func writeJavaScriptCommonModule(filePath string, resMap map[string]string) {
+	f, err := createFileWithPath(filePath)
+	if err != nil {
+		panic(err)
+	}
+
+	defer f.Close()
+
+	jsonBytes, _ := json.MarshalIndent(resMap, "", "  ")
+	jsBytes := append([]byte("module.exports = "), jsonBytes...)
+
+	f.Write(jsBytes)
 
 	f.Sync()
 }
