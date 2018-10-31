@@ -20,7 +20,7 @@ Application Options:
   -e, --envkey= ENVKEY variable
   -s, --source= Source dotenv file path
   -o, --output= Output file path
-  -f, --format= Output format. options: [dotenv, json, gaeyaml, export] (default: dotenv)
+  -f, --format= Output format. options: [dotenv, json, gaeyaml, export, commonjs] (default: dotenv)
 
 Help Options:
   -h, --help    Show this help message
