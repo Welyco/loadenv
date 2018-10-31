@@ -44,7 +44,21 @@ ENV2=bar
 ```
 # loadenv -s .env -o credentials/json -f json
 # cat credentials/json
-{"ENV1":"foo","ENV2":"bar"}
+{
+  "ENV1":"foo",
+  "ENV2":"bar"
+}
+```
+
+### commonjs
+
+```
+# loadenv -s .env -o credentials/js -f commonjs
+# cat credentials/js
+module.exports = {
+  "ENV1":"foo",
+  "ENV2":"bar"
+}
 ```
 
 ## Advanced Format
