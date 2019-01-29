@@ -46,7 +46,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	res := fetch.Fetch(envkey, fetch.FetchOptions{false, "", "envkeygo", "", false, 2.0})
+	res, err := fetch.Fetch(envkey, fetch.FetchOptions{
+		ShouldCache:    false,
+		CacheDir:       "",
+		ClientName:     "envkeygo",
+		ClientVersion:  "",
+		VerboseOutput:  false,
+		TimeoutSeconds: 5.0,
+	})
+	if err != nil {
+		panic(errors.New("problem while fetching Envkey server"))
+	}
+
 	if strings.HasPrefix(res, "error:") {
 		panic(errors.New(strings.Split(res, "error:")[1]))
 	}
